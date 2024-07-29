@@ -1,39 +1,89 @@
-import React from 'react'
+import React, { useState } from 'react'
 import './addproduct.css'
 import upload from '../../assets/upload.png'
 
 const Addproduct = () => {
+  
+  const[image,setImage] = useState(false);
+
+  const [productDetails,setproductDetails] = useState({
+    name:"",
+    image:"",
+    category:"women",
+    new_price: "",
+    old_price:""
+  });
+
+  const productHandler = (e) =>{
+    setproductDetails({...productDetails,[e.target.name]:e.target.value})
+  }
+
+  const imageHandler=(e) =>{
+      setImage(e.target.files[0]);
+  }
+
+  const addProduct = async() =>{
+    console.log(productDetails);
+    let responseData;
+    let product = productDetails;
+
+    let formData = new FormData();
+    formData.append('product', image);
+
+    await fetch('http://localhost:4000/upload',{
+      method: 'POST',
+      Headers:{
+        Accept: 'application/json',
+      },
+      body:formData,
+    }).then((resp)=> resp.json()).then((data)=>{responseData=data})
+    if(responseData.success){
+      product.image = responseData.image_url;
+      console.log(product);
+
+      await fetch('http://localhost:4000/addproduct',{
+         method: 'POST',
+         headers:{
+          Accept: 'application/json',
+          'Content-Type':'application/json',
+         },
+         body:JSON.stringify(product),
+      }).then((resp)=>resp.json()).then((data)=>{
+        data.success?alert('Product Added'):alert("Failed");
+      })
+    }
+  }
   return (
     <div className='product'>
       <div className="p-item">
         <p>Product name</p>
-        <input type="text" name='name' placeholder='Enter Product name' />
+        <input value={productDetails.name} onChange={productHandler} type="text" name='name' placeholder='Enter Product name' />
       </div>
       <div className="p-price">
         <div className="p-item">
         <p>Old Price</p>
-          <input type="text" name='old price' placeholder='Enter Old price'/>
+          <input value={productDetails.old_price} onChange={productHandler} type="text" name='old_price' placeholder='Enter Old price'/>
         </div>
         <div className="p-item">
           <p>Offer price</p>
-          <input type="text" name='new price' placeholder='Enter New price'/>
+          <input value={productDetails.new_price} onChange={productHandler} type="text" name='new_price' placeholder='Enter New price'/>
         </div>
       </div>
       <div className="p-item">
         <p>Product Category</p>
-        <select name="category" className='addSelector'>
+        <select value={productDetails.category} onChange={productHandler} name="category" className='addSelector'>
         <option value="women">Women</option>
         <option value="men">Men</option>
         <option value="kids">Kids</option>
-        </select>
+        </select> 
       </div>
       <div className="p-item">
         <label htmlFor="file-input">
-          <img src={upload} className='addImage' alt="" />
+          <img src={image?URL.createObjectURL(image):upload} className='addImage' alt="" />
         </label>
-        <input type="file" name='image' id='file-input' hidden/>
+        <input  onChange={imageHandler} type="file" name='image' id='file-input' hidden/>
       </div>
-      <button className='addbutton'> ADD</button>
+      <button onClick={()=>{addProduct()}} className='addbutton'> ADD</button>
     </div>
   )
 }

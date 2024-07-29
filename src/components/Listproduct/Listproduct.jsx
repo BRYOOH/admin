@@ -3,7 +3,9 @@ import './listproduct.css'
 
 const Listproduct = () => {
   return (
-    <div>Listproduct</div>
+    <div className='listP'>
+
+    </div>
   )
 }
 
